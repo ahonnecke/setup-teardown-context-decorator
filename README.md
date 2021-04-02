@@ -2,27 +2,36 @@
 
 This is a simple package that aims to make adding setup and teardown to pytest flavored tests quick and painless.
 
-# Usage
+# Installation
 ```
-class PgSetupTeardown(ContextDecorator):
+python3 -m pip install setup-teardown
+```
+
+# Decorator Usage
+
+## Custom Database Class
+```
+from setup_teardown import SetupTeardown
+
+class PgSetupTeardown(SetupTeardown):
     def __init__(self, table, **kwargs):
         self.table = table
         self.__dict__.update(kwargs)
 
     def __enter__(self):
+        # Perform test setup
         self.session = db.session.new_session()
-
         self.session.query(self.table).delete()
         self.session.commit()
         return self
 
     def __exit__(self, typ, val, traceback):
-        self.session = db.session.new_session()
-
+        # Perform test teardown
         self.session.query(self.table).delete()
         self.session.commit()
 ```
 
+## Actual test
 ```
 class TestHandlerDatabaseRequired:
     @SetupTeardown(table="table_name")
@@ -34,27 +43,20 @@ class TestHandlerDatabaseRequired:
         pass
 ```
 
+# Context manager usage
 
 ```
 
     def setup(self):
-        print("setup")
-        self.start_time = time.time()
+        session = db.session.new_session()
+        session.query(self.table).delete()
+        session.commit()
 
     def teardown(self):
-        print("teardown")
-        print("{}".format(time.time() - self.start_time))
+        session = db.session.new_session()
+        session.query(self.table).delete()
+        session.commit()
 
-    # decorator application example
-    print("=============== Decorator Usage ===================")
-
-    @SetupTeardown(setup=setup, teardown=teardown)
-    def foo():
-        print("inner")
-
-    foo()
-
-    print("=============== Context Manager Usage ===================")
     # contest manager application example
     with SetupTeardown(setup=setup, teardown=teardown):
         print("inner")
