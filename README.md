@@ -22,16 +22,14 @@ class PgSetupTeardown(SetupTeardown):
         # Perform test setup
         self.session = db.session.new_session()
         self.session.query(self.table).delete()
-        self.session.commit()
         return self
 
     def __exit__(self, typ, val, traceback):
         # Perform test teardown
         self.session.query(self.table).delete()
-        self.session.commit()
 ```
 
-## Actual test
+## Example test with decorator usage
 ```
 class TestHandlerDatabaseRequired:
     @SetupTeardown(table="table_name")
@@ -39,25 +37,22 @@ class TestHandlerDatabaseRequired:
         """
         Example of using the SetupTeardown ContextDecorator with arbitrary setup and teardown
         """
-        # execute the test
-        pass
+        assert 1 == 1
+        # Effect the database changes
 ```
 
-# Context manager usage
+## Example test with context manager usage
 
 ```
-
     def setup(self):
-        session = db.session.new_session()
-        session.query(self.table).delete()
-        session.commit()
+        db.session.new_session().query(self.table).delete()
 
     def teardown(self):
-        session = db.session.new_session()
-        session.query(self.table).delete()
-        session.commit()
+        db.session.new_session().query(self.table).delete()
+
 
     # contest manager application example
     with SetupTeardown(setup=setup, teardown=teardown):
-        print("inner")
+        assert 1 == 1
+        # Effect the database changes
 ```
